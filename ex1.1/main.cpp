@@ -41,6 +41,9 @@ void philosopher_thread(int table_pos, int n) {
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
         std::cout << "Philosopher" << table_pos << " finished eating.." << std::endl;
+
+        chopsticks[second].unlock();
+        chopsticks[first].unlock();
     }
 }
 
@@ -61,7 +64,7 @@ int main(int argc, char* argv[]) {
     chopsticks = std::vector<std::mutex>(n);
 
     std::vector<std::thread> philosophers;
-    philosophers.reserve(n);
+    philosophers.reserve(n); // so the vector as at least n elements
     for (int i = 0; i < n; ++i) {
         philosophers.emplace_back(philosopher_thread, i, n);
     }
