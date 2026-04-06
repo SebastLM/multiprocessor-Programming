@@ -1,0 +1,53 @@
+Q: Programmers at the Flanky  Computer Corporation designed the protocol showned below to achive n-thread mutual exclusion.
+
+  1. Does this protocol satisfy mutual exclusion?
+  2. is this protocol starvation-free?
+  3. is this protocol deadlock-free?
+  4. is this protocol livelock-free?
+
+  the lock algorithm in question:
+  
+  class FLaky implements Lock {
+      private int turn;
+      private boolean busy = false;
+
+      public void lock() {
+        int me = ThreadID.get();
+        do {
+          do {
+            turn = me;
+          } while (busy);
+          busy = true;
+        } while (turn != me);
+      }
+
+      public void unlock() {
+        busy = false;
+      }
+    }
+
+
+
+
+R: 1. this protocol satisfys mutual exclusion, since there wont be more then 1 thread at the CS(critical section) at the same time.
+      - the first thread comes sets turn to itself
+      - busy = false, so procedes
+      - sets busy to true
+      - turn = me so its locked
+
+      - 2nd thread comes and sets turn to itself
+      - busy = true so it will keep on setting the turn to itself until the first thread unlocks
+      - ...
+
+   2. this protocol doesnt satisfy starvation-free requesites, due to the turn logic.
+      the threads waiting will keep on setting the turn to them selfs, 
+      one thread (thread A) that is waiting will eventualy see the busy = false and procedes.
+      In the mean time another thread (thread B) sets the turn to B.
+      Thread A reaches the final while, and verifys that the turn = B (!=A), so it goes back to the beggining of the lock;
+
+   3/4. picking up the example above, if that happens, thread A might set the busy to true, and when trying to verify the final while condition,
+        it sees that turn = B so it goes back to the beggining. 
+        With that the busy = true so all threads will be waiting infinitely. (The thread that was supposed to unlock it was A, but it failed the final verification).
+
+    The dorway section here would help (the bakery algorithm for example, in page 34)
+

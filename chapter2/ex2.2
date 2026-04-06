@@ -1,0 +1,5 @@
+Q: Why must we define a doorway section, rather than defining first-come-first-served in a mutual exclusion
+  algorithm based on the order in which the first instruction in the lock() method was executed?
+
+R: So we can have some kind of fairness. The doorway section is a piece of code at the start of a lock method, that is guaranteed to complete
+  in a set number of instruction, which provides a "timestamping" mechanism.

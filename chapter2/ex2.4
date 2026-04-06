@@ -1,0 +1,46 @@
+Q: Show that the Filter Lock allows some threads to overtake others an arbitrary number of times.
+
+  the algorithm:
+    
+    class Filter implements Lock {
+      int[] level;
+      int[] victim;
+
+      public Filter(int n) {
+        level = new int[n];
+        victim = new int[n];
+        for (int i = 0; i < n; i++) {
+          level[i] = 0;
+        }
+      }
+
+      public void lock() {
+        int me = ThreadID.get();
+        for (int i = 1; i < n; i++) {
+          level[me] = i;
+          victim[i] = me;
+
+          while ((∃k != me) (level[k] >= i && victim[i] == me)) {};
+        }
+      }
+
+      public void unlock() {
+        int me = ThreadID.get();
+        level[me] = 0;
+      }
+    }
+
+
+R: The Filter Lock algorithm guarantees mutual exclusion and is starvation free, but it does not guarantee first-In-first-Out  ordering or bounded waiting. Because of how the victim variable operates at each level, it is possible for a fast thread to overtake a slow thread.
+   This occurs because a thread only advances to the next level when another thread arrives and overwrites the victim[i] variable, or when all higher levels are completely empty.
+
+   The overtake scenario:
+      We have 3 threads A, B and C. We also have 2 levels + the CS state
+      A, the first thread entering the first level, will breese through, reaching the CS state.
+      Meanwhile thread B enters as well and reaches the level 2, waiting for the CS level to be unlocked by A.
+      For further notice B is a slow thread (due to external reasons, CPU ...), so A unlocks and goes back to queue.
+      A reaches the 1st level (B is still slowly getting ready to go to CS), C enters and goes to the 1st level as well, setting the victim as itself;
+      Since level[1] = C, thread A will fail the victim[i] == me verification, so it will pass to the 2nd level (where B sits at).
+      B is still very slow, and A reaches the while loop faster; 
+      A sees that no one is above him (no one is in the CS state) so it enters, overtaking B.
+
